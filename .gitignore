@@ -1,0 +1,75 @@
+#############################
+# PYTHON
+#############################
+
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+dist/
+build/
+.eggs/
+
+#############################
+# VIRTUAL ENVIRONMENTS
+#############################
+
+venv/
+.venv/
+env/
+ENV/
+
+#############################
+# PYCHARM
+#############################
+
+.idea/
+*.iml
+
+#############################
+# JUPYTER
+#############################
+
+.ipynb_checkpoints/
+
+#############################
+# DATA (VERY IMPORTANT)
+#############################
+
+# Ignore raw dataset (7GB)
+data/raw/
+
+# Ignore processed dataset files
+data/processed/
+
+# If you want to keep processed small files later,
+# remove above line and use:
+# data/processed/*.npz
+
+#############################
+# TRAINED MODELS / ARTIFACTS
+#############################
+
+artifacts/
+*.model
+*.pkl
+*.joblib
+
+#############################
+# LOG FILES
+#############################
+
+*.log
+
+#############################
+# MACOS
+#############################
+
+.DS_Store
+
+#############################
+# TEMP FILES
+#############################
+
+*.tmp
+*.cache
