@@ -67,6 +67,7 @@ artifacts/
 
 .DS_Store
 .idea
+create_structure.sh
 
 #############################
 # TEMP FILES
