@@ -16,13 +16,10 @@ def load_npz(path: str):
 
 
 def eval_split(y_true, y_score, group):
-    nd1 = ndcg_at_k(y_true, y_score, group, 1).mean()
-    nd3 = ndcg_at_k(y_true, y_score, group, 3).mean()
-    nd5 = ndcg_at_k(y_true, y_score, group, 5).mean()
-    nd10 = ndcg_at_k(y_true, y_score, group, 10).mean()
-    mrr10 = mrr_at_k(y_true, y_score, group, 10, rel_threshold=1).mean()
-    map10 = map_at_k(y_true, y_score, group, 10, rel_threshold=1).mean()
-    return float(nd1), float(nd3), float(nd5), float(nd10), float(mrr10), float(map10)
+    nd10 = ndcg_at_k(y_true, y_score, group, 10)
+    mrr10 = mrr_at_k(y_true, y_score, group, 10, rel_threshold=1)
+    map10 = map_at_k(y_true, y_score, group, 10, rel_threshold=1)
+    return float(nd10.mean()), float(mrr10.mean()), float(map10.mean())
 
 
 def main():
@@ -47,43 +44,37 @@ def main():
 
     os.makedirs(args.out_dir, exist_ok=True)
 
-    ranker = lgb.LGBMRanker(
-        objective="lambdarank",
-        metric="ndcg",
-        boosting_type="gbdt",
-        n_estimators=5000,
-        learning_rate=0.03,
+    # Pointwise baseline: predict relevance label as a real-valued score
+    model = lgb.LGBMRegressor(
+        n_estimators=2000,
+        learning_rate=0.05,
         num_leaves=63,
-        min_data_in_leaf=50,
         subsample=0.8,
         colsample_bytree=0.8,
         random_state=args.seed,
         n_jobs=-1,
     )
 
-    ranker.fit(
+    model.fit(
         Xtr, ytr,
-        group=gtr,
         eval_set=[(Xva, yva)],
-        eval_group=[gva],
-        eval_at=[1, 3, 5, 10],
-        callbacks=[lgb.early_stopping(stopping_rounds=100, verbose=True)],
+        eval_metric="l2",
+        callbacks=[lgb.early_stopping(stopping_rounds=50, verbose=True)],
     )
 
-    va_scores = ranker.predict(Xva)
-    te_scores = ranker.predict(Xte)
+    # Predict scores for ranking
+    va_scores = model.predict(Xva)
+    te_scores = model.predict(Xte)
 
-    va = eval_split(yva, va_scores, gva)
-    te = eval_split(yte, te_scores, gte)
+    ndcg10_va, mrr10_va, map10_va = eval_split(yva, va_scores, gva)
+    ndcg10_te, mrr10_te, map10_te = eval_split(yte, te_scores, gte)
 
-    print("\n=== LambdaMART (LGBMRanker) Results ===")
-    print(f"VAL  : NDCG@1={va[0]:.5f} NDCG@3={va[1]:.5f} NDCG@5={va[2]:.5f} NDCG@10={va[3]:.5f}  "
-          f"MRR@10={va[4]:.5f} MAP@10={va[5]:.5f}")
-    print(f"TEST : NDCG@1={te[0]:.5f} NDCG@3={te[1]:.5f} NDCG@5={te[2]:.5f} NDCG@10={te[3]:.5f}  "
-          f"MRR@10={te[4]:.5f} MAP@10={te[5]:.5f}")
+    print("\n=== Pointwise LGBMRegressor Results ===")
+    print(f"VAL  : NDCG@10={ndcg10_va:.5f}  MRR@10={mrr10_va:.5f}  MAP@10={map10_va:.5f}")
+    print(f"TEST : NDCG@10={ndcg10_te:.5f}  MRR@10={mrr10_te:.5f}  MAP@10={map10_te:.5f}")
 
-    out_path = os.path.join(args.out_dir, f"lambdamart_fold{args.fold}.joblib")
-    joblib.dump(ranker, out_path)
+    out_path = os.path.join(args.out_dir, f"pointwise_fold{args.fold}.joblib")
+    joblib.dump(model, out_path)
     print(f"\n✅ Saved model: {out_path}")
 
 
