@@ -47,16 +47,32 @@ def main():
 
     os.makedirs(args.out_dir, exist_ok=True)
 
+    # ranker = lgb.LGBMRanker(
+    #     objective="lambdarank",
+    #     metric="ndcg",
+    #     boosting_type="gbdt",
+    #     n_estimators=5000,
+    #     learning_rate=0.03,
+    #     num_leaves=63,
+    #     min_data_in_leaf=50,
+    #     subsample=0.8,
+    #     colsample_bytree=0.8,
+    #     random_state=args.seed,
+    #     n_jobs=-1,
+    # )
+
     ranker = lgb.LGBMRanker(
         objective="lambdarank",
         metric="ndcg",
+        label_gain=[0, 1, 3, 7, 15],
         boosting_type="gbdt",
-        n_estimators=5000,
-        learning_rate=0.03,
-        num_leaves=63,
-        min_data_in_leaf=50,
-        subsample=0.8,
-        colsample_bytree=0.8,
+        n_estimators=8000,
+        learning_rate=0.02,
+        num_leaves=127,
+        min_data_in_leaf=20,
+        subsample=0.9,
+        colsample_bytree=0.9,
+        reg_lambda=1.0,
         random_state=args.seed,
         n_jobs=-1,
     )

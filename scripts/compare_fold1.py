@@ -14,8 +14,18 @@ def load_npz(path: str):
     return d["X"], d["y"], d["qid"], d["group"].tolist()
 
 
+# def eval_all(y_true, y_score, group):
+#     return {
+#         "NDCG@10": float(ndcg_at_k(y_true, y_score, group, 10).mean()),
+#         "MRR@10":  float(mrr_at_k(y_true, y_score, group, 10, rel_threshold=1).mean()),
+#         "MAP@10":  float(map_at_k(y_true, y_score, group, 10, rel_threshold=1).mean()),
+#     }
+
 def eval_all(y_true, y_score, group):
     return {
+        "NDCG@1": float(ndcg_at_k(y_true, y_score, group, 1).mean()),
+        "NDCG@3": float(ndcg_at_k(y_true, y_score, group, 3).mean()),
+        "NDCG@5": float(ndcg_at_k(y_true, y_score, group, 5).mean()),
         "NDCG@10": float(ndcg_at_k(y_true, y_score, group, 10).mean()),
         "MRR@10":  float(mrr_at_k(y_true, y_score, group, 10, rel_threshold=1).mean()),
         "MAP@10":  float(map_at_k(y_true, y_score, group, 10, rel_threshold=1).mean()),
@@ -41,9 +51,27 @@ def main():
     m_point = eval_all(yte, s_point, gte)
     m_rank = eval_all(yte, s_rank, gte)
 
-    print("\nModel\t\t\tNDCG@10\t\tMRR@10\t\tMAP@10")
-    print(f"Pointwise LGBMReg\t{m_point['NDCG@10']:.5f}\t\t{m_point['MRR@10']:.5f}\t\t{m_point['MAP@10']:.5f}")
-    print(f"LambdaMART LGBMRank\t{m_rank['NDCG@10']:.5f}\t\t{m_rank['MRR@10']:.5f}\t\t{m_rank['MAP@10']:.5f}")
+    # print("\nModel\t\t\tNDCG@10\t\tMRR@10\t\tMAP@10")
+    # print(f"Pointwise LGBMReg\t{m_point['NDCG@10']:.5f}\t\t{m_point['MRR@10']:.5f}\t\t{m_point['MAP@10']:.5f}")
+    # print(f"LambdaMART LGBMRank\t{m_rank['NDCG@10']:.5f}\t\t{m_rank['MRR@10']:.5f}\t\t{m_rank['MAP@10']:.5f}")
+
+    print("\nModel\t\t\tNDCG@1\tNDCG@3\tNDCG@5\tNDCG@10\tMRR@10\tMAP@10")
+
+    print(f"Pointwise LGBMReg\t"
+          f"{m_point['NDCG@1']:.5f}\t"
+          f"{m_point['NDCG@3']:.5f}\t"
+          f"{m_point['NDCG@5']:.5f}\t"
+          f"{m_point['NDCG@10']:.5f}\t"
+          f"{m_point['MRR@10']:.5f}\t"
+          f"{m_point['MAP@10']:.5f}")
+
+    print(f"LambdaMART LGBMRank\t"
+          f"{m_rank['NDCG@1']:.5f}\t"
+          f"{m_rank['NDCG@3']:.5f}\t"
+          f"{m_rank['NDCG@5']:.5f}\t"
+          f"{m_rank['NDCG@10']:.5f}\t"
+          f"{m_rank['MRR@10']:.5f}\t"
+          f"{m_rank['MAP@10']:.5f}")
 
 
 if __name__ == "__main__":
